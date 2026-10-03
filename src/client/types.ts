@@ -69,6 +69,9 @@ export interface SearchResult {
   totalCount: number;
   page: number;
   items: Item[];
+  source?: 'html-catalog';
+  totalCountIsExact?: boolean;
+  warnings?: string[];
 }
 
 export interface ItemDetail extends Item {

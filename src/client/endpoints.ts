@@ -3,6 +3,7 @@ import {
   type Country, type Item, type ItemDetail, type SearchParams, type SearchResult, type Seller, type CategoryHit,
 } from './types.js';
 import { VintedClient } from './session.js';
+import { searchPolishCatalog } from './html-search.js';
 
 function buildSearchPath(p: SearchParams): string {
   const qs = new URLSearchParams();
@@ -26,10 +27,15 @@ function buildSearchPath(p: SearchParams): string {
 
 export async function searchItems(client: VintedClient, p: SearchParams): Promise<SearchResult> {
   const country = p.country ?? 'fr';
+  let htmlFallback = false;
   const data = await client.apiGet<{
     items: any[];
     pagination?: { total_entries?: number };
-  }>(country, buildSearchPath(p));
+  }>(country, buildSearchPath(p)).catch(async (error) => {
+    if (country !== 'pl' || !(error instanceof Error) || !error.message.startsWith('Vinted 404 ')) throw error;
+    htmlFallback = true;
+    return searchPolishCatalog(client, buildSearchPath(p), p);
+  });
 
   const items: Item[] = (data.items ?? []).map((i) => ({
     id: Number(i.id),
@@ -52,6 +58,11 @@ export async function searchItems(client: VintedClient, p: SearchParams): Promis
     totalCount: data.pagination?.total_entries ?? items.length,
     page: p.page ?? 1,
     items,
+    ...(htmlFallback ? {
+      source: 'html-catalog' as const,
+      totalCountIsExact: false,
+      warnings: ['HTML fallback: totalCount is the number of returned items, not the full catalogue count; seller details are unavailable.'],
+    } : {}),
   };
 }
 

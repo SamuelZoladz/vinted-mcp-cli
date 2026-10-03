@@ -28,6 +28,7 @@
     "prepublishOnly": "npm run clean && npm run build"
   },
   "dependencies": {
+    "cheerio": "^1.0.0",
     "commander": "^12.1.0",
     "undici": "^6.19.8"
   },
@@ -42,7 +43,7 @@
     "typescript": "^5.5.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.17.0"
   },
   "license": "MIT",
   "files": [

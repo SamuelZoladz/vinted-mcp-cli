@@ -21,6 +21,7 @@ export async function opSearchAll(
   const items: SearchResult['items'] = [];
   let nextPage = p.page ?? 1;
   let totalCount = 0;
+  let fallbackMetadata: Pick<SearchResult, 'source' | 'totalCountIsExact' | 'warnings'> | undefined;
 
   // Sliding window of in-flight page requests
   const pending: Array<Promise<SearchResult>> = [];
@@ -35,6 +36,9 @@ export async function opSearchAll(
 
   while (pending.length > 0) {
     const r = await pending.shift()!;
+    if (r.source === 'html-catalog') {
+      fallbackMetadata = { source: r.source, totalCountIsExact: false, warnings: r.warnings };
+    }
     if (r.totalCount > totalCount) totalCount = r.totalCount;
     if (!r.items.length) {
       pending.length = 0; // drain: no point fetching further pages
@@ -57,5 +61,5 @@ export async function opSearchAll(
     enqueue(); // top up the window
   }
 
-  return { totalCount: totalCount || items.length, page: 1, items };
+  return { totalCount: fallbackMetadata ? items.length : totalCount || items.length, page: 1, items, ...fallbackMetadata };
 }

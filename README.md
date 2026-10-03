@@ -143,6 +143,21 @@ vinted trending --country fr --output table
 
 ## Supported Countries
 
+### Polish search fallback
+
+If the Polish JSON search endpoint returns HTTP 404, searches fall back to the
+public server-rendered catalogue. The fallback preserves catalogue query/filter
+parameters and extracts listing titles, PLN prices (excluding buyer protection),
+brands, sizes, conditions, links, photos, and favourite counts. Date filters are
+not supported by this fallback and produce an explicit error.
+
+Fallback search responses include `source: "html-catalog"`,
+`totalCountIsExact: false`, and `warnings`: `totalCount` is the returned page's
+item count, not a market-wide total, and seller details are unavailable
+(`seller.id` remains `0`). Pagination/filter behavior depends on the public
+catalogue; the fallback cannot guarantee API-equivalent results. It is currently
+limited to Poland and HTTP 404, so authentication errors remain visible.
+
 `fr` `de` `uk` `it` `es` `nl` `pl` `pt` `be` `at` `lt` `cz` `sk` `hu` `ro` `hr` `fi` `dk` `se`
 
 ---
